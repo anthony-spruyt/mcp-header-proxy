@@ -59,10 +59,10 @@ func TestInjectHeaders_ToolsCall(t *testing.T) {
 	}
 
 	var params map[string]json.RawMessage
-	json.Unmarshal(msg["params"], &params)
+	mustUnmarshal(t, msg["params"], &params)
 
 	var args map[string]interface{}
-	json.Unmarshal(params["arguments"], &args)
+	mustUnmarshal(t, params["arguments"], &args)
 
 	if args["x-mcp-job-id"] != "job-123" {
 		t.Errorf("x-mcp-job-id = %v, want job-123", args["x-mcp-job-id"])
@@ -87,11 +87,11 @@ func TestInjectHeaders_OverwritesExisting(t *testing.T) {
 	}
 
 	var msg map[string]json.RawMessage
-	json.Unmarshal(modified, &msg)
+	mustUnmarshal(t, modified, &msg)
 	var params map[string]json.RawMessage
-	json.Unmarshal(msg["params"], &params)
+	mustUnmarshal(t, msg["params"], &params)
 	var args map[string]interface{}
-	json.Unmarshal(params["arguments"], &args)
+	mustUnmarshal(t, params["arguments"], &args)
 
 	if args["x-mcp-job-id"] != "real-id" {
 		t.Errorf("x-mcp-job-id = %v, want real-id (should overwrite hallucinated)", args["x-mcp-job-id"])
@@ -111,11 +111,11 @@ func TestInjectHeaders_NoArguments(t *testing.T) {
 	}
 
 	var msg map[string]json.RawMessage
-	json.Unmarshal(modified, &msg)
+	mustUnmarshal(t, modified, &msg)
 	var params map[string]json.RawMessage
-	json.Unmarshal(msg["params"], &params)
+	mustUnmarshal(t, msg["params"], &params)
 	var args map[string]interface{}
-	json.Unmarshal(params["arguments"], &args)
+	mustUnmarshal(t, params["arguments"], &args)
 
 	if args["x-mcp-job-id"] != "job-1" {
 		t.Errorf("x-mcp-job-id = %v, want job-1", args["x-mcp-job-id"])
@@ -165,9 +165,9 @@ func TestInjectHeaders_PreservesUnknownFields(t *testing.T) {
 	}
 
 	var msg map[string]json.RawMessage
-	json.Unmarshal(modified, &msg)
+	mustUnmarshal(t, modified, &msg)
 	var params map[string]json.RawMessage
-	json.Unmarshal(msg["params"], &params)
+	mustUnmarshal(t, msg["params"], &params)
 
 	if _, ok := params["_meta"]; !ok {
 		t.Error("_meta field lost during injection")
@@ -182,7 +182,7 @@ func TestProxy_Integration(t *testing.T) {
 	upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		receivedBody, _ = io.ReadAll(r.Body)
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(`{"jsonrpc":"2.0","id":1,"result":{}}`))
+		_, _ = w.Write([]byte(`{"jsonrpc":"2.0","id":1,"result":{}}`))
 	}))
 	defer upstream.Close()
 
@@ -204,11 +204,11 @@ func TestProxy_Integration(t *testing.T) {
 	}
 
 	var msg map[string]json.RawMessage
-	json.Unmarshal(receivedBody, &msg)
+	mustUnmarshal(t, receivedBody, &msg)
 	var params map[string]json.RawMessage
-	json.Unmarshal(msg["params"], &params)
+	mustUnmarshal(t, msg["params"], &params)
 	var args map[string]interface{}
-	json.Unmarshal(params["arguments"], &args)
+	mustUnmarshal(t, params["arguments"], &args)
 
 	if args["x-mcp-job-id"] != "real-job-123" {
 		t.Errorf("upstream got x-mcp-job-id = %v, want real-job-123", args["x-mcp-job-id"])
@@ -221,7 +221,7 @@ func TestProxy_Integration(t *testing.T) {
 func TestProxy_GETPassthrough(t *testing.T) {
 	upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/event-stream")
-		w.Write([]byte("data: test\n\n"))
+		_, _ = w.Write([]byte("data: test\n\n"))
 	}))
 	defer upstream.Close()
 
@@ -244,7 +244,7 @@ func TestProxy_NoMCPHeaders(t *testing.T) {
 	var receivedBody []byte
 	upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		receivedBody, _ = io.ReadAll(r.Body)
-		w.Write([]byte(`{"jsonrpc":"2.0","id":1,"result":{}}`))
+		_, _ = w.Write([]byte(`{"jsonrpc":"2.0","id":1,"result":{}}`))
 	}))
 	defer upstream.Close()
 
@@ -261,5 +261,12 @@ func TestProxy_NoMCPHeaders(t *testing.T) {
 
 	if string(receivedBody) != body {
 		t.Errorf("body should be unchanged when no MCP headers present")
+	}
+}
+
+func mustUnmarshal(t *testing.T, data []byte, v any) {
+	t.Helper()
+	if err := json.Unmarshal(data, v); err != nil {
+		t.Fatalf("unmarshal %q: %v", data, err)
 	}
 }
