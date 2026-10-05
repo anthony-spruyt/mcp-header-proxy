@@ -1,4 +1,4 @@
-package main
+package proxy
 
 import (
 	"bytes"
@@ -188,7 +188,7 @@ func TestProxy_Integration(t *testing.T) {
 
 	upstreamURL, _ := url.Parse(upstream.URL)
 	logger := slog.New(slog.NewJSONHandler(io.Discard, nil))
-	p := NewProxy(upstreamURL, logger)
+	p := New(upstreamURL, logger)
 
 	body := `{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"submit_result","arguments":{"status":"done"}}}`
 	req := httptest.NewRequest("POST", "/mcp/agent-platform", bytes.NewBufferString(body))
@@ -227,7 +227,7 @@ func TestProxy_GETPassthrough(t *testing.T) {
 
 	upstreamURL, _ := url.Parse(upstream.URL)
 	logger := slog.New(slog.NewJSONHandler(io.Discard, nil))
-	p := NewProxy(upstreamURL, logger)
+	p := New(upstreamURL, logger)
 
 	req := httptest.NewRequest("GET", "/mcp/agent-platform", nil)
 	req.Header.Set("X-MCP-Job-ID", "ignored")
@@ -250,7 +250,7 @@ func TestProxy_NoMCPHeaders(t *testing.T) {
 
 	upstreamURL, _ := url.Parse(upstream.URL)
 	logger := slog.New(slog.NewJSONHandler(io.Discard, nil))
-	p := NewProxy(upstreamURL, logger)
+	p := New(upstreamURL, logger)
 
 	body := `{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"test","arguments":{"a":"b"}}}`
 	req := httptest.NewRequest("POST", "/mcp/agent-platform", bytes.NewBufferString(body))
