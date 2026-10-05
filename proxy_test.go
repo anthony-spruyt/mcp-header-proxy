@@ -44,7 +44,7 @@ func TestExtractMCPHeaders_None(t *testing.T) {
 func TestInjectHeaders_ToolsCall(t *testing.T) {
 	body := `{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"submit_result","arguments":{"status":"success"}}}`
 	headers := map[string]string{
-		"x-mcp-job-id":       "job-123",
+		"x-mcp-job-id":        "job-123",
 		"x-mcp-session-token": "tok-456",
 	}
 
