@@ -53,16 +53,7 @@ func TestInjectHeaders_ToolsCall(t *testing.T) {
 		t.Fatal("expected changed=true")
 	}
 
-	var msg map[string]json.RawMessage
-	if err := json.Unmarshal(modified, &msg); err != nil {
-		t.Fatal(err)
-	}
-
-	var params map[string]json.RawMessage
-	mustUnmarshal(t, msg["params"], &params)
-
-	var args map[string]interface{}
-	mustUnmarshal(t, params["arguments"], &args)
+	args := argumentsOf(t, modified)
 
 	if args["x-mcp-job-id"] != "job-123" {
 		t.Errorf("x-mcp-job-id = %v, want job-123", args["x-mcp-job-id"])
@@ -86,12 +77,7 @@ func TestInjectHeaders_OverwritesExisting(t *testing.T) {
 		t.Fatal("expected changed=true")
 	}
 
-	var msg map[string]json.RawMessage
-	mustUnmarshal(t, modified, &msg)
-	var params map[string]json.RawMessage
-	mustUnmarshal(t, msg["params"], &params)
-	var args map[string]interface{}
-	mustUnmarshal(t, params["arguments"], &args)
+	args := argumentsOf(t, modified)
 
 	if args["x-mcp-job-id"] != "real-id" {
 		t.Errorf("x-mcp-job-id = %v, want real-id (should overwrite hallucinated)", args["x-mcp-job-id"])
@@ -110,12 +96,7 @@ func TestInjectHeaders_NoArguments(t *testing.T) {
 		t.Fatal("expected changed=true")
 	}
 
-	var msg map[string]json.RawMessage
-	mustUnmarshal(t, modified, &msg)
-	var params map[string]json.RawMessage
-	mustUnmarshal(t, msg["params"], &params)
-	var args map[string]interface{}
-	mustUnmarshal(t, params["arguments"], &args)
+	args := argumentsOf(t, modified)
 
 	if args["x-mcp-job-id"] != "job-1" {
 		t.Errorf("x-mcp-job-id = %v, want job-1", args["x-mcp-job-id"])
@@ -203,12 +184,7 @@ func TestProxy_Integration(t *testing.T) {
 		t.Fatalf("status = %d, want 200", w.Code)
 	}
 
-	var msg map[string]json.RawMessage
-	mustUnmarshal(t, receivedBody, &msg)
-	var params map[string]json.RawMessage
-	mustUnmarshal(t, msg["params"], &params)
-	var args map[string]interface{}
-	mustUnmarshal(t, params["arguments"], &args)
+	args := argumentsOf(t, receivedBody)
 
 	if args["x-mcp-job-id"] != "real-job-123" {
 		t.Errorf("upstream got x-mcp-job-id = %v, want real-job-123", args["x-mcp-job-id"])
@@ -269,4 +245,15 @@ func mustUnmarshal(t *testing.T, data []byte, v any) {
 	if err := json.Unmarshal(data, v); err != nil {
 		t.Fatalf("unmarshal %q: %v", data, err)
 	}
+}
+
+func argumentsOf(t *testing.T, body []byte) map[string]any {
+	t.Helper()
+	var msg map[string]json.RawMessage
+	mustUnmarshal(t, body, &msg)
+	var params map[string]json.RawMessage
+	mustUnmarshal(t, msg["params"], &params)
+	var args map[string]any
+	mustUnmarshal(t, params["arguments"], &args)
+	return args
 }
