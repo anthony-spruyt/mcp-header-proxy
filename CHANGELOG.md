@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.0](https://github.com/anthony-spruyt/mcp-header-proxy/compare/v0.0.15...v1.0.0) (2026-10-06)
+
+
+### Features
+
+* mark the image stable at 1.0.0 ([800488a](https://github.com/anthony-spruyt/mcp-header-proxy/commit/800488a0d007afbd42b3bfc0225f01bcdcd2fdbc))
+
 ## [0.0.15](https://github.com/anthony-spruyt/mcp-header-proxy/compare/v0.0.14...v0.0.15) (2026-10-06)
 
 
