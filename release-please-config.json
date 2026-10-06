@@ -4,7 +4,6 @@
   "draft": true,
   "force-tag-creation": true,
   "include-component-in-tag": false,
-  "last-release-sha": "9ce9631e051caa19ac6716347d8c18a31889e4fb",
   "changelog-sections": [
     { "type": "feat", "section": "Features" },
     { "type": "fix", "section": "Bug Fixes" },
