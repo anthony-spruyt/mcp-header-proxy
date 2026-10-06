@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.15](https://github.com/anthony-spruyt/mcp-header-proxy/compare/v0.0.14...v0.0.15) (2026-10-06)
+
+
+### Code Refactoring
+
+* standard Go layout and shared CI/release workflows ([#4](https://github.com/anthony-spruyt/mcp-header-proxy/issues/4)) ([e0dbdfd](https://github.com/anthony-spruyt/mcp-header-proxy/commit/e0dbdfded9ae7bb78953897744f6cd9bccfd87b7))
+
 ## [0.0.14](https://github.com/anthony-spruyt/spruyt-labs/compare/mcp-header-proxy/v0.0.13...mcp-header-proxy/v0.0.14) (2026-09-19)
 
 
