@@ -11,6 +11,8 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/anthony-spruyt/mcp-header-proxy/internal/proxy"
 )
 
 var (
@@ -41,11 +43,9 @@ func run() int {
 		"upstream", upstreamRaw,
 	)
 
-	proxy := NewProxy(upstream, logger)
-
 	mux := http.NewServeMux()
 	mux.HandleFunc("/healthz", healthHandler)
-	mux.Handle("/", proxy)
+	mux.Handle("/", proxy.New(upstream, logger))
 
 	srv := &http.Server{
 		Handler:      mux,

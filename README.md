@@ -13,6 +13,20 @@ Streaming responses are flushed immediately (`FlushInterval: -1`) so SSE streams
 
 `GET /healthz` returns `ok` and is used for probes.
 
+## Layout
+
+- `cmd/mcp-header-proxy`: entrypoint and configuration
+- `internal/proxy`: the reverse proxy and header injection
+
+```bash
+go test -race ./...
+golangci-lint run
+```
+
 ## Releases
 
-Versioning is managed by release-please. See `docs/releases.md`.
+release-please opens a release PR from conventional commits. Merging it tags `vX.Y.Z` and creates a draft release. The image `ghcr.io/anthony-spruyt/mcp-header-proxy` is then built from the tag and pushed with an SBOM and provenance. The release is published only after the push succeeds.
+
+If the image job fails, the release stays a draft. Fix the cause, then run the **Rebuild Release** workflow with the version.
+
+Releases up to 0.0.14 were cut from [spruyt-labs](https://github.com/anthony-spruyt/spruyt-labs) as `mcp-header-proxy/vX.Y.Z`.

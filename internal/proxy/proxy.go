@@ -1,4 +1,5 @@
-package main
+// Package proxy injects X-MCP-* request headers into MCP tools/call JSON-RPC bodies.
+package proxy
 
 import (
 	"bytes"
@@ -13,9 +14,9 @@ import (
 
 const mcpHeaderPrefix = "x-mcp-"
 
-// NewProxy creates a reverse proxy that intercepts tools/call JSON-RPC
+// New creates a reverse proxy that intercepts tools/call JSON-RPC
 // requests and injects X-MCP-* HTTP header values into params.arguments.
-func NewProxy(upstream *url.URL, logger *slog.Logger) http.Handler {
+func New(upstream *url.URL, logger *slog.Logger) http.Handler {
 	rp := &httputil.ReverseProxy{
 		Rewrite: func(r *httputil.ProxyRequest) {
 			r.SetURL(upstream)

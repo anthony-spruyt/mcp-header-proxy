@@ -1,4 +1,4 @@
-package main
+package proxy
 
 import (
 	"bytes"
@@ -44,7 +44,7 @@ func TestExtractMCPHeaders_None(t *testing.T) {
 func TestInjectHeaders_ToolsCall(t *testing.T) {
 	body := `{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"submit_result","arguments":{"status":"success"}}}`
 	headers := map[string]string{
-		"x-mcp-job-id":       "job-123",
+		"x-mcp-job-id":        "job-123",
 		"x-mcp-session-token": "tok-456",
 	}
 
@@ -53,16 +53,7 @@ func TestInjectHeaders_ToolsCall(t *testing.T) {
 		t.Fatal("expected changed=true")
 	}
 
-	var msg map[string]json.RawMessage
-	if err := json.Unmarshal(modified, &msg); err != nil {
-		t.Fatal(err)
-	}
-
-	var params map[string]json.RawMessage
-	json.Unmarshal(msg["params"], &params)
-
-	var args map[string]interface{}
-	json.Unmarshal(params["arguments"], &args)
+	args := argumentsOf(t, modified)
 
 	if args["x-mcp-job-id"] != "job-123" {
 		t.Errorf("x-mcp-job-id = %v, want job-123", args["x-mcp-job-id"])
@@ -86,12 +77,7 @@ func TestInjectHeaders_OverwritesExisting(t *testing.T) {
 		t.Fatal("expected changed=true")
 	}
 
-	var msg map[string]json.RawMessage
-	json.Unmarshal(modified, &msg)
-	var params map[string]json.RawMessage
-	json.Unmarshal(msg["params"], &params)
-	var args map[string]interface{}
-	json.Unmarshal(params["arguments"], &args)
+	args := argumentsOf(t, modified)
 
 	if args["x-mcp-job-id"] != "real-id" {
 		t.Errorf("x-mcp-job-id = %v, want real-id (should overwrite hallucinated)", args["x-mcp-job-id"])
@@ -110,12 +96,7 @@ func TestInjectHeaders_NoArguments(t *testing.T) {
 		t.Fatal("expected changed=true")
 	}
 
-	var msg map[string]json.RawMessage
-	json.Unmarshal(modified, &msg)
-	var params map[string]json.RawMessage
-	json.Unmarshal(msg["params"], &params)
-	var args map[string]interface{}
-	json.Unmarshal(params["arguments"], &args)
+	args := argumentsOf(t, modified)
 
 	if args["x-mcp-job-id"] != "job-1" {
 		t.Errorf("x-mcp-job-id = %v, want job-1", args["x-mcp-job-id"])
@@ -165,9 +146,9 @@ func TestInjectHeaders_PreservesUnknownFields(t *testing.T) {
 	}
 
 	var msg map[string]json.RawMessage
-	json.Unmarshal(modified, &msg)
+	mustUnmarshal(t, modified, &msg)
 	var params map[string]json.RawMessage
-	json.Unmarshal(msg["params"], &params)
+	mustUnmarshal(t, msg["params"], &params)
 
 	if _, ok := params["_meta"]; !ok {
 		t.Error("_meta field lost during injection")
@@ -182,13 +163,13 @@ func TestProxy_Integration(t *testing.T) {
 	upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		receivedBody, _ = io.ReadAll(r.Body)
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(`{"jsonrpc":"2.0","id":1,"result":{}}`))
+		_, _ = w.Write([]byte(`{"jsonrpc":"2.0","id":1,"result":{}}`))
 	}))
 	defer upstream.Close()
 
 	upstreamURL, _ := url.Parse(upstream.URL)
 	logger := slog.New(slog.NewJSONHandler(io.Discard, nil))
-	p := NewProxy(upstreamURL, logger)
+	p := New(upstreamURL, logger)
 
 	body := `{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"submit_result","arguments":{"status":"done"}}}`
 	req := httptest.NewRequest("POST", "/mcp/agent-platform", bytes.NewBufferString(body))
@@ -203,12 +184,7 @@ func TestProxy_Integration(t *testing.T) {
 		t.Fatalf("status = %d, want 200", w.Code)
 	}
 
-	var msg map[string]json.RawMessage
-	json.Unmarshal(receivedBody, &msg)
-	var params map[string]json.RawMessage
-	json.Unmarshal(msg["params"], &params)
-	var args map[string]interface{}
-	json.Unmarshal(params["arguments"], &args)
+	args := argumentsOf(t, receivedBody)
 
 	if args["x-mcp-job-id"] != "real-job-123" {
 		t.Errorf("upstream got x-mcp-job-id = %v, want real-job-123", args["x-mcp-job-id"])
@@ -221,13 +197,13 @@ func TestProxy_Integration(t *testing.T) {
 func TestProxy_GETPassthrough(t *testing.T) {
 	upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/event-stream")
-		w.Write([]byte("data: test\n\n"))
+		_, _ = w.Write([]byte("data: test\n\n"))
 	}))
 	defer upstream.Close()
 
 	upstreamURL, _ := url.Parse(upstream.URL)
 	logger := slog.New(slog.NewJSONHandler(io.Discard, nil))
-	p := NewProxy(upstreamURL, logger)
+	p := New(upstreamURL, logger)
 
 	req := httptest.NewRequest("GET", "/mcp/agent-platform", nil)
 	req.Header.Set("X-MCP-Job-ID", "ignored")
@@ -244,13 +220,13 @@ func TestProxy_NoMCPHeaders(t *testing.T) {
 	var receivedBody []byte
 	upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		receivedBody, _ = io.ReadAll(r.Body)
-		w.Write([]byte(`{"jsonrpc":"2.0","id":1,"result":{}}`))
+		_, _ = w.Write([]byte(`{"jsonrpc":"2.0","id":1,"result":{}}`))
 	}))
 	defer upstream.Close()
 
 	upstreamURL, _ := url.Parse(upstream.URL)
 	logger := slog.New(slog.NewJSONHandler(io.Discard, nil))
-	p := NewProxy(upstreamURL, logger)
+	p := New(upstreamURL, logger)
 
 	body := `{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"test","arguments":{"a":"b"}}}`
 	req := httptest.NewRequest("POST", "/mcp/agent-platform", bytes.NewBufferString(body))
@@ -262,4 +238,22 @@ func TestProxy_NoMCPHeaders(t *testing.T) {
 	if string(receivedBody) != body {
 		t.Errorf("body should be unchanged when no MCP headers present")
 	}
+}
+
+func mustUnmarshal(t *testing.T, data []byte, v any) {
+	t.Helper()
+	if err := json.Unmarshal(data, v); err != nil {
+		t.Fatalf("unmarshal %q: %v", data, err)
+	}
+}
+
+func argumentsOf(t *testing.T, body []byte) map[string]any {
+	t.Helper()
+	var msg map[string]json.RawMessage
+	mustUnmarshal(t, body, &msg)
+	var params map[string]json.RawMessage
+	mustUnmarshal(t, msg["params"], &params)
+	var args map[string]any
+	mustUnmarshal(t, params["arguments"], &args)
+	return args
 }
