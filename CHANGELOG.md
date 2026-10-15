@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/anthony-spruyt/mcp-header-proxy/compare/v1.0.0...v1.0.1) (2026-10-15)
+
+
+### Documentation
+
+* **readme:** note the CI network limits ([#22](https://github.com/anthony-spruyt/mcp-header-proxy/issues/22)) ([2395fe6](https://github.com/anthony-spruyt/mcp-header-proxy/commit/2395fe6fc551032a592920af420fb2bda8385251))
+
 ## [1.0.0](https://github.com/anthony-spruyt/mcp-header-proxy/compare/v0.0.15...v1.0.0) (2026-10-06)
 
 
