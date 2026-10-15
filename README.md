@@ -27,7 +27,7 @@ golangci-lint run
 
 release-please opens a release PR from conventional commits. Merging it tags `vX.Y.Z` and creates a draft release. The image `ghcr.io/anthony-spruyt/mcp-header-proxy` is then built from the tag and pushed with an SBOM and provenance. The release is published only after the push succeeds.
 
-CI builds and publishes the image with outbound network limited to GitHub, the container registries and the hosts listed under `egress` in `metadata.yaml`.
+CI builds and publishes the image with outbound network limited to GitHub, Sigstore, the container registries and the hosts listed under `egress` in `metadata.yaml`.
 
 If the image job fails, the release stays a draft. Fix the cause, then run the **Rebuild Release** workflow with the version.
 
