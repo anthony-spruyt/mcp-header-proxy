@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.2](https://github.com/anthony-spruyt/mcp-header-proxy/compare/v1.0.1...v1.0.2) (2026-10-24)
+
+
+### Bug Fixes
+
+* **deps:** update container image gcr.io/distroless/static to nonroot ([#25](https://github.com/anthony-spruyt/mcp-header-proxy/issues/25)) ([f96e3e6](https://github.com/anthony-spruyt/mcp-header-proxy/commit/f96e3e60404fbc7a1020f09696024b5dc7a1c766))
+* **deps:** update container image gcr.io/distroless/static to nonroot ([#28](https://github.com/anthony-spruyt/mcp-header-proxy/issues/28)) ([592d763](https://github.com/anthony-spruyt/mcp-header-proxy/commit/592d7638ccc0ac9383ef5ae9ffe2dcd4a3e22cec))
+
 ## [1.0.1](https://github.com/anthony-spruyt/mcp-header-proxy/compare/v1.0.0...v1.0.1) (2026-10-15)
 
 
