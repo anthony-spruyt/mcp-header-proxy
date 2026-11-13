@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.4](https://github.com/anthony-spruyt/mcp-header-proxy/compare/v1.0.3...v1.0.4) (2026-11-13)
+
+
+### Bug Fixes
+
+* **deps:** update container image gcr.io/distroless/static to 25ac8f0 ([#39](https://github.com/anthony-spruyt/mcp-header-proxy/issues/39)) ([1e03c1b](https://github.com/anthony-spruyt/mcp-header-proxy/commit/1e03c1b6b6c2f518271896f2a79d227bc3736e36))
+
 ## [1.0.3](https://github.com/anthony-spruyt/mcp-header-proxy/compare/v1.0.2...v1.0.3) (2026-11-05)
 
 
